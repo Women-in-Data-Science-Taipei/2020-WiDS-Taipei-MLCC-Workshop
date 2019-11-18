@@ -1,0 +1,33 @@
+當使用者在搜尋某樣產品的時候，另外可以推薦什麼產品給這個使用者?
+
+底下是非常rough的測試
+
+1. merge dataset : 
+	olist_order_reviews_dataset
+	olist_order_items_dataset
+	olist_orders_dataset
+
+	[view as column name]
+	['review_id', 'order_id', 'review_score', 'review_comment_title', 'review_comment_message', 'review_creation_date', 'review_answer_timestamp']
+	['order_id', 'order_item_id', 'product_id', 'seller_id', 'shipping_limit_date', 'price', 'freight_value']
+	['order_id', 'customer_id', 'order_status', 'order_purchase_timestamp', 'order_approved_at', 'order_delivered_carrier_date', 'order_delivered_customer_date', 'order_estimated_delivery_date']
+
+
+2. drop columns and left:
+	['customer_id', 'order_status', 'order_id', 'review_score', 'product_id']
+
+3. 只留下order_status為'delivered'的那些rows
+4. 統計 每個product被購買的次數('product_bought_count')、每個product的平均分數('product_average_score')
+5. new個dataframe:
+	['customer_id', 'product_id', 'product_bought_count', 'produc_rate_count', 'product_average_rate']
+
+6. new幾個pivot dataframe:
+	index: 'product_id', columns: 'customer_id', values: 'product_bought_count'
+	index: 'product_id', columns: 'customer_id', values: 'product_average_rate'
+
+7. 這3個pivot frame分別去做KNN
+8. 當使用者搜尋某一個產品的時候，就用這個產品的product_id，分別在3個KNN的結果去找 "和這個產品最接近的5個產品"
+9. 從這15個產品中去，根據不同情況去進一步分析要推薦哪幾個個顧客。
+	例如：有5個產品的平均分數很低，所以就不考慮這5個.......
+	
+	
