@@ -1,0 +1,64 @@
+﻿當使用者在搜尋某樣產品的時候，另外可以推薦什麼產品給這個使用者?
+
+EDA 邏輯:
+
+1.(想法) 消費內容不外乎：這一次花了多少錢、買了多少樣東西，如果我們要從簡單的下手，可以先從"每一筆訂單有多少東西"開始
+2.(發現) 有90%的訂單都只有買一個物品
+3.(想法) 那麼消費跟月份有沒有關係
+4.(發現) 1月訂單量較少，11月訂單量較多，其他月份差不多。但這兩個發現都是很容易想到的
+5.(小結論) 在這家電商消費的客戶，在每份訂單中大多都只有1個商品
+6.(想法) 可能有3個原因導致上面的結論:運費便宜、民族文化(想到什麼就趕快買)、經濟能力低(無法一次買很多)。
+7.(想法) 除了運費之外，其他兩項都跟那個地區的有關，需要相當的know-how，所以暫不分析。
+8.(想法) 這樣的話，我們如果要建立推薦系統，就可以從review score下手
+
+
+Recommendation:
+
+1. merge dataset : 
+	olist_order_reviews_dataset
+	olist_order_items_dataset
+	olist_orders_dataset
+
+	[view as column name]
+	['review_id', 'order_id', 'review_score', 'review_comment_title', 'review_comment_message', 'review_creation_date', 'review_answer_timestamp']
+	['order_id', 'order_item_id', 'product_id', 'seller_id', 'shipping_limit_date', 'price', 'freight_value']
+	['order_id', 'customer_id', 'order_status', 'order_purchase_timestamp', 'order_approved_at', 'order_delivered_carrier_date', 'order_delivered_customer_date', 'order_estimated_delivery_date']
+
+
+2. drop columns and left:
+	['customer_id', 'order_status', 'order_id', 'review_score', 'product_id']
+
+3. 只留下order_status為'delivered'的那些rows
+
+4. 統計 每個product被購買的次數('product_bought_count')、每個product的平均分數('product_average_score')
+
+5. 產生pivot_frame:
+	index: 'product_id', columns: 'customer_id', values: 'product_bought_count'
+
+6. do clustering: choose 6 neighbors
+
+結果:
+Recommendations for e3b5a4c3f8512fe1315f05564e461ff4:
+
+1: bc055ae94989497c0d66bfa4263ccf61, with distance of 0.8845299461620748:
+2: aba92acbdc38cb3a656015d4fa601a23, with distance of 1.0:
+3: abc3432ff825d8e524db1d4eac6d2099, with distance of 1.0:
+4: abe236a52dbc43e90bad00fe6d794582, with distance of 1.0:
+5: ab9cf155f8280c3739b09fe341a185e8, with distance of 1.0:
+
+7. do SVD+correlation coefficient
+
+結果:
+和 e3b5a4c3f8512fe1315f05564e461ff4 的相關係數介於0.9-1之間的product:
+['15416967b480fca6c3ceac3335e57c36',
+ '2029248294c186017ecfc48cecd47bbd',
+ '48cf041a87beac458328d395d035515a',
+ 'b74d57e3377dd78aace6d070fc48cc88',
+ 'b76364870c38ddd7dcc9dd9ab5abeeb4',
+ 'bb15f9ba2ec6e36ab6c9e88d17430d64',
+ 'bc055ae94989497c0d66bfa4263ccf61']
+
+
+從6和7的結果來看，兩個方法針對 "買了e3b5a4c3f8512fe1315f05564e461ff4 後" 可以推薦的商品，有一個相吻合(bc055ae94989497c0d66bfa4263ccf61)
+所以覺得還不錯。
+	
